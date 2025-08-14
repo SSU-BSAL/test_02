@@ -1,1 +1,62 @@
-1-wolves
+function 1-wolves
+% WOLF_RABBIT_SIM  Simulate a wolf chasing a rabbit in a 100x100 grid.
+% The rabbit moves randomly (N/E/S/W/Stay) by 1 meter each second.
+% The wolf moves toward the rabbit by 1 or 2 meters each second along the
+% shortest path but skips movement one out of three turns. The simulation
+% ends when the wolf reaches the rabbit and the paths are plotted.
+
+gridSize = 100;
+
+% Random initial positions within the grid
+rng('shuffle');
+rabbit = randi(gridSize, [1, 2]);
+wolf = randi(gridSize, [1, 2]);
+while isequal(rabbit, wolf)
+    wolf = randi(gridSize, [1, 2]); % ensure distinct start positions
+end
+
+rabbitPath = rabbit;
+wolfPath = wolf;
+steps = 0;
+
+moves = [1 0; -1 0; 0 1; 0 -1; 0 0]; % possible rabbit moves
+
+while ~isequal(rabbit, wolf)
+    % Rabbit random move
+    idx = randi(size(moves, 1));
+    rabbit = rabbit + moves(idx, :);
+    rabbit = max(min(rabbit, gridSize), 1); % keep within bounds
+    rabbitPath(end+1, :) = rabbit; %#ok<AGROW>
+
+    % Wolf move (fails to move 1 out of 3 turns)
+    if rand() < 2/3
+        diff = rabbit - wolf;
+        if abs(diff(1)) >= abs(diff(2))
+            step = sign(diff(1)) * min(2, abs(diff(1)));
+            wolf(1) = wolf(1) + step;
+        else
+            step = sign(diff(2)) * min(2, abs(diff(2)));
+            wolf(2) = wolf(2) + step;
+        end
+        wolf = max(min(wolf, gridSize), 1);
+    end
+    wolfPath(end+1, :) = wolf; %#ok<AGROW>
+    steps = steps + 1;
+end
+
+fprintf('Wolf caught the rabbit in %d steps.\n', steps);
+
+figure;
+plot(rabbitPath(:,1), rabbitPath(:,2), 'b-o', 'DisplayName', 'Rabbit');
+hold on;
+plot(wolfPath(:,1), wolfPath(:,2), 'r-x', 'DisplayName', 'Wolf');
+legend('Location', 'best');
+axis([1 gridSize 1 gridSize]);
+axis square;
+grid on;
+title('Wolf chasing Rabbit Simulation');
+xlabel('X (m)');
+ylabel('Y (m)');
+end
+
+
